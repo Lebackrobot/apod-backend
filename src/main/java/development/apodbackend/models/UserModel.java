@@ -2,6 +2,7 @@ package development.apodbackend.models;
 
 import java.util.Date;
 
+import development.apodbackend.schemas.UserSchema;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -40,5 +41,10 @@ public class UserModel {
     @PreUpdate
     protected void onUpdate() {
         updated_at = new Date();
+    }
+
+    public UserModel(UserSchema userSchema) {
+        this.nickname = userSchema.nickname();
+        this.email = userSchema.email();
     }
 }
