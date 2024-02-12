@@ -1,12 +1,14 @@
 package development.apodbackend.models;
 
 import java.util.Date;
+import java.util.List;
 
-import development.apodbackend.schemas.UserSchema;
+import development.apodbackend.schemas.SubscriptionSchema;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
@@ -16,19 +18,20 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Table(schema="public", name="user")
+@Table(schema="public", name="subscriptions")
 @Entity
 @EqualsAndHashCode(of="id")
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserModel {
+public class SubscriptionModel {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
     private String email;
-    private String nickname;
+    private String username;
+    private Boolean status;
     private Date created_at;
     private Date updated_at;
 
@@ -36,6 +39,7 @@ public class UserModel {
     @PrePersist
     protected void onCreate() {
         created_at = new Date();
+        status = true;
     }
 
     @PreUpdate
@@ -43,8 +47,8 @@ public class UserModel {
         updated_at = new Date();
     }
 
-    public UserModel(UserSchema userSchema) {
-        this.nickname = userSchema.nickname();
+    public SubscriptionModel(SubscriptionSchema userSchema) {
+        this.username = userSchema.username();
         this.email = userSchema.email();
     }
 }
