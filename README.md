@@ -3,5 +3,5 @@
 
 <center>
   
-  <img src="https://github.com/Lebackrobot/apod-backend/assets/49316490/c79ccf65-de7f-4368-97ca-30430fd9c6c6" width="800">
+  <img src="https://github.com/Lebackrobot/apod-backend/assets/49316490/8a052ce9-4c1d-4fa5-955b-23c68a0b0136" width="800">
 </center>
