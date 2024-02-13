@@ -24,6 +24,9 @@ public class SchedulerMailService {
     JavaMailSender mailSender;
 
     @Autowired
+    SubscriptionService subscriptionService;
+
+    @Autowired
     ApodApi apodApi;
 
     private String readHtmlFile(String filePath) {
@@ -38,37 +41,42 @@ public class SchedulerMailService {
         }
     }
 
+
     public void sendEmail() {
         
         try {
+            
+            var subscriptions = subscriptionService.get();
+            MailMessageSchema responseApi = apodApi.getAstronomyPicure();
+            String htmlBody = readHtmlFile("src/main/java/development/apodbackend/schemas/MailMessageSchema.html");
+
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper messageHelper = new MimeMessageHelper(message, true);
 
-            messageHelper.setTo("*****************");
+
+            // Set values
             messageHelper.setSubject("Astronomy Picture of The Day");
-
-
-            String htmlBody = readHtmlFile("src/main/java/development/apodbackend/schemas/MailMessageSchema.html");
-
-            if (htmlBody.equals("")) {
-                System.out.println("Fail to send email!");
-                return;
-            }
-
-            MailMessageSchema responseApi = apodApi.getAstronomyPicure();
-
             htmlBody = htmlBody.replace("$TITLE$", responseApi.getTitle());
             htmlBody = htmlBody.replace("$DATE$", responseApi.getDate());
             htmlBody = htmlBody.replace("$EXPLANATION$", responseApi.getExplanation());
-            htmlBody = htmlBody.replace("$USERNAME$", "Pedro Fernandes");
-
-            System.out.println(htmlBody);
+            htmlBody = htmlBody.replace("$PICTURE$", responseApi.getPicture());
 
 
-            messageHelper.setText(htmlBody, true);
-            mailSender.send(message);
+            for (var subscription : subscriptions) {
+                try{
+                    htmlBody = htmlBody.replace("$USERNAME$", subscription.getUsername());
+                    
+                    messageHelper.setTo(subscription.getEmail());
+                    messageHelper.setText(htmlBody, true);
+                    mailSender.send(message);
+                    System.out.println("Success to send email!");
+                }
 
-            System.out.println("Success to send email!");
+                catch (Exception error) {
+                    error.printStackTrace();
+                    continue;
+                }
+            }
         }
 
         catch (MessagingException error) {
@@ -79,9 +87,9 @@ public class SchedulerMailService {
 
     }
 
-
     @Scheduled(fixedDelay=1000 * 60 * 2)
     void taskLog() {
-        sendEmail();
+        
+        //sendEmail();
     }
 }
