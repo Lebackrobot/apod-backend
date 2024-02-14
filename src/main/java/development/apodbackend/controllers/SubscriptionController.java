@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import development.apodbackend.models.SubscriptionModel;
 import development.apodbackend.schemas.SubscriptionSchema;
+import development.apodbackend.services.SchedulerEmailService;
 import development.apodbackend.services.SubscriptionService;
 import jakarta.validation.Valid;
 
@@ -23,6 +24,9 @@ public class SubscriptionController {
 
     @Autowired 
     private SubscriptionService subscriptionService;
+
+    @Autowired
+    private SchedulerEmailService mailSenderService;
     
     @GetMapping
     public ResponseEntity<List<SubscriptionModel>> get() {
@@ -53,7 +57,11 @@ public class SubscriptionController {
             return ResponseEntity.status(400).build();
         }
 
-        
+        // Send email to new subscription
+        new Thread(() -> {
+            mailSenderService.sendEmail(new SubscriptionModel(payload));
+        }).start();
+
         return ResponseEntity.status(201).body(subscriptionService.create(new SubscriptionModel(payload)));
     }
 

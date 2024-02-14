@@ -23,6 +23,9 @@ public class SubscriptionService {
     }
 
     public SubscriptionModel create(SubscriptionModel subscription) {
+        if (subscription == null) {
+            return null;
+        }
         return repository.save(subscription);
     }
 
