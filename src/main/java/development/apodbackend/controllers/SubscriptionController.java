@@ -12,13 +12,17 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import development.apodbackend.apis.ApodApi;
 import development.apodbackend.models.SubscriptionModel;
 import development.apodbackend.schemas.SubscriptionSchema;
+import development.apodbackend.schemas.ApodApiSchema;
 import development.apodbackend.services.SchedulerEmailService;
 import development.apodbackend.services.SubscriptionService;
 import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 
 @RestController
+@Slf4j
 @RequestMapping("/noauth/subscriptions")
 public class SubscriptionController {
 
@@ -27,6 +31,9 @@ public class SubscriptionController {
 
     @Autowired
     private SchedulerEmailService mailSenderService;
+
+    @Autowired
+    private ApodApi apodApi;
     
     @GetMapping
     public ResponseEntity<List<SubscriptionModel>> get() {
@@ -62,9 +69,18 @@ public class SubscriptionController {
         final SubscriptionModel newSubscription = subscriptionService.create(new SubscriptionModel(payload));
         
         new Thread(() -> {
-            mailSenderService.sendEmail(newSubscription);
+            log.info("START SENT EMAIL THREAD");
+            var picture = apodApi.getAstronomyPicture();
+
+            if (picture == null) {
+                log.info("❌ OOPS! AN ERROR OCCURED, APOD API TIMOUT.");
+                return;
+            }
+
+            mailSenderService.sendEmail(newSubscription, picture);
         }).start();
         
+        log.info("CREATE SUBSCRIPTION");
         return ResponseEntity.status(201).body(newSubscription);
     }
 

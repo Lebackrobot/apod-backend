@@ -2,20 +2,24 @@ package development.apodbackend.apis;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.ClientHttpRequestFactory;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import development.apodbackend.schemas.MailMessageSchema;
+import development.apodbackend.schemas.ApodApiSchema;
 
 @Service
 public class ApodApi {
-    @Value("${spring.apod.api.key}")
-    private String apod_api_key;
+    @Value("${nasa.api.url}")
+    private String url;
+    private int timeout = 10000;
 
-    private MailMessageSchema parseJsonToMailMessageSchema(String jsonString) {
+    
+    private ApodApiSchema parseJsonToMailMessageSchema(String jsonString) {
         try {
             ObjectMapper objectMapper = new ObjectMapper();
             JsonNode jsonNode = objectMapper.readTree(jsonString);
@@ -25,7 +29,7 @@ public class ApodApi {
             String explanation = jsonNode.get("explanation").asText();
             String date = jsonNode.get("date").asText();
 
-            return new MailMessageSchema(title, hdUrl, explanation, date);
+            return new ApodApiSchema(title, hdUrl, explanation, date);
         } 
         
         catch (Exception error) {
@@ -34,15 +38,19 @@ public class ApodApi {
         }
     }
     
-    public MailMessageSchema getAstronomyPicure() {
+    public ApodApiSchema getAstronomyPicture() {
         RestTemplate restTemplate = new RestTemplate();
+        restTemplate.setRequestFactory(getClientHttpRequestFactory());
 
-        String apiUrl = "https://api.nasa.gov/planetary/apod?" + apod_api_key;
-
-
-        ResponseEntity<String> response = restTemplate.getForEntity(apiUrl, String.class);
-
-        
+        // Get APOD API values
+        ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
         return parseJsonToMailMessageSchema(response.getBody());
+    }
+
+    private ClientHttpRequestFactory getClientHttpRequestFactory() {
+        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+        factory.setConnectTimeout(timeout);
+        factory.setReadTimeout(timeout);
+        return factory;
     }
 }

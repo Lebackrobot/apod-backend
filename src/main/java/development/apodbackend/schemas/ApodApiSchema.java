@@ -7,7 +7,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @Setter
 @Getter
-public class MailMessageSchema {
+public class ApodApiSchema {
     private String title;
     private String picture;
     private String explanation;
