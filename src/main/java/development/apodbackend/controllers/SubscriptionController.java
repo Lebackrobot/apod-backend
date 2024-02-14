@@ -57,12 +57,15 @@ public class SubscriptionController {
             return ResponseEntity.status(400).build();
         }
 
+        
         // Send email to new subscription
+        final SubscriptionModel newSubscription = subscriptionService.create(new SubscriptionModel(payload));
+        
         new Thread(() -> {
-            mailSenderService.sendEmail(new SubscriptionModel(payload));
+            mailSenderService.sendEmail(newSubscription);
         }).start();
-
-        return ResponseEntity.status(201).body(subscriptionService.create(new SubscriptionModel(payload)));
+        
+        return ResponseEntity.status(201).body(newSubscription);
     }
 
 
