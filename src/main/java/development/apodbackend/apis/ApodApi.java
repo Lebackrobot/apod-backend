@@ -33,7 +33,6 @@ public class ApodApi {
         } 
         
         catch (Exception error) {
-            error.printStackTrace();
             return null;
         }
     }
@@ -42,9 +41,14 @@ public class ApodApi {
         RestTemplate restTemplate = new RestTemplate();
         restTemplate.setRequestFactory(getClientHttpRequestFactory());
 
-        // Get APOD API values
-        ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
-        return parseJsonToMailMessageSchema(response.getBody());
+        try {
+            ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
+            return parseJsonToMailMessageSchema(response.getBody());
+        }
+
+        catch (Exception error) {
+            return null;
+        }
     }
 
     private ClientHttpRequestFactory getClientHttpRequestFactory() {
