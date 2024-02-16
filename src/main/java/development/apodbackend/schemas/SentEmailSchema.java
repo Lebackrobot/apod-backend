@@ -1,3 +1,3 @@
 package development.apodbackend.schemas;
 
-public record SentEmailSchema(int subscription_id) {}
+public record SentEmailSchema(int subscriptionId) {}

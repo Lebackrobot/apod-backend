@@ -19,4 +19,10 @@ public class SentEmailService {
         repository.save(sentEmail);
         return sentEmail;
     }
+
+    public SentEmailModel getLastSendBySubscriptionId(int subscriptionId) {
+        var sent_emails = repository.findBySubscriptionIdOrderByCreatedAtDesc(subscriptionId);
+
+        return sent_emails.size() != 0 ? sent_emails.get(0) : null;
+    }
 }

@@ -1,6 +1,7 @@
 package development.apodbackend.models;
 
 
+import java.time.LocalDate;
 import java.util.Date;
 
 import jakarta.persistence.Entity;
@@ -15,6 +16,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
 @Table(schema="public", name="sent_emails")
 @Entity
@@ -23,25 +25,32 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@Slf4j
 public class SentEmailModel {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    private int subscription_id;
-    private Date created_at;
-    private Date updated_at;
+    private int subscriptionId;
+    private Date createdAt;
+    private Date updatedAt;
 
     @PrePersist
     protected void onCreated() {
-        created_at = new Date();
+        createdAt = new Date();
     }
 
     @PreUpdate
     protected void onUpdate() {
-        updated_at = new Date();
+        updatedAt = new Date();
     }
 
-    public SentEmailModel(int subscription_id) {
-        this.subscription_id = subscription_id;
+    public SentEmailModel(int subscriptionId) {
+        this.subscriptionId = subscriptionId;
+    }
+
+    public boolean isToday() {
+        return createdAt.toString()
+                        .split(" ")[0]
+                        .equals(LocalDate.now().toString());
     }
 }
