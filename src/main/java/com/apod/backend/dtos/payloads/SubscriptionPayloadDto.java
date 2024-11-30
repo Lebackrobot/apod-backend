@@ -1,7 +1,7 @@
-package com.apod.backend.dtos;
+package com.apod.backend.dtos.payloads;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 
-public record PayloadSubscriptionDto(@NotBlank String name, @NotBlank @Email String email) {
+public record SubscriptionPayloadDto(@NotBlank String name, @NotBlank @Email String email) {
 }
