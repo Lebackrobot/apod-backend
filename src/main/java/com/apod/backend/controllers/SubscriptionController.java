@@ -1,6 +1,6 @@
 package com.apod.backend.controllers;
 
-import com.apod.backend.Dtos.SubscriptionDto;
+import com.apod.backend.dtos.SubscriptionDto;
 import com.apod.backend.entities.Subscription;
 import com.apod.backend.services.SubscriptionService;
 import jakarta.validation.Valid;
