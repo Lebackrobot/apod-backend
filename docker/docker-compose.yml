@@ -10,3 +10,8 @@ services:
       - POSTGRES_USER=user
       - POSTGRES_PASSWORD=password
       - POSTGRES_DB=apod_database
+
+  redis:
+    image: redis
+    ports:
+      - "6479:6379"
