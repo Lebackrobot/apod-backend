@@ -19,20 +19,29 @@ public class Subscription {
 
     @NotNull
     private String name;
+
     @NotNull
     private String email;
-    @NotBlank
     private Boolean status;
 
-    @Column(name = "created_at", nullable = false)
+    @Column(name = "created_at")
     private Timestamp createdAt;
 
-    @Column(name = "updatedAt", nullable = false)
+    @Column(name = "updated_at")
     private Timestamp updatedAt;
+
+    public Subscription(@NotBlank String email, @NotBlank String name) {
+        this.name = name;
+        this.email = email;
+        this.status = true;
+    }
 
     @PrePersist
     private void prePersist() {
-        createdAt = new Timestamp(System.currentTimeMillis());
+        Timestamp currentTimestamp = new Timestamp(System.currentTimeMillis());
+
+        createdAt = currentTimestamp;
+        updatedAt = currentTimestamp;
     }
 
     @PreUpdate

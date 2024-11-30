@@ -10,12 +10,18 @@ public class SubscriptionService {
     @Autowired
     private SubscriptionRepository subscriptionRepository;
 
-    public void save(Subscription subscription) {
-        subscriptionRepository.save(subscription);
+    public Subscription create(Subscription subscription) {
+        System.out.println(subscription);
+        return subscriptionRepository.save(subscription);
     }
+    public void update(Subscription subscription) { subscriptionRepository.save(subscription);}
 
     public Subscription getById(Long id) {
         return subscriptionRepository.findById(id).orElse(null);
+    }
+
+    public Subscription getByEmail(String email) {
+        return subscriptionRepository.findByEmail(email).orElse(null);
     }
 
     public void deleteById(Long id) {
