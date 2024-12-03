@@ -1,6 +1,5 @@
 package com.apod.backend.controllers;
 
-import com.apod.backend.dtos.payloads.SubscriptionValidationPayloadDto;
 import com.apod.backend.dtos.responses.ResponseDto;
 import com.apod.backend.dtos.payloads.SubscriptionPayloadDto;
 import com.apod.backend.entities.Subscription;
@@ -26,7 +25,7 @@ public class SubscriptionController {
         Subscription subscription = subscriptionService.getByEmail(subscriptionPayload.email());
 
         if (subscription != null) {
-            return ResponseEntity.status(409).build();
+            return ResponseEntity.status(409).body(new ResponseDto<>(false, "Email já cadastrado", null));
         }
 
         redisService.setTokenByEmail(subscriptionPayload.email());
@@ -38,22 +37,15 @@ public class SubscriptionController {
         );
     }
 
-    @PostMapping("confirmations")
-    public ResponseEntity<ResponseDto<Subscription>> confirmation(@RequestBody @Valid SubscriptionValidationPayloadDto subscriptionValidationPayload) {
-        String token = redisService.get(subscriptionValidationPayload.email());
+    @DeleteMapping("/{subscriptionId}")
+    public ResponseEntity<ResponseDto<Subscription>> deleteById(@PathVariable Long subscriptionId) {
+        Subscription subscription = subscriptionService.getById(subscriptionId);
 
-        if (token == null) {
-            return ResponseEntity.status(401).body(
-              new ResponseDto<>(false, "Token inválido.", null)
-            );
+        if (subscription == null) {
+            return ResponseEntity.status(404).body(new ResponseDto<>(false, "Subscription não encontrada.", null));
         }
 
-        Subscription newSubscription = subscriptionService.create(
-                new Subscription(
-                        subscriptionValidationPayload.email(),
-                        subscriptionValidationPayload.name()
-                )
-        );
-        return ResponseEntity.status(201).body(new ResponseDto<Subscription>(true, "Subscription criada.", newSubscription));
+        subscriptionService.deleteById(subscriptionId);
+        return ResponseEntity.status(200).body(new ResponseDto<>(true, "Subscription deletada.", subscription));
     }
 }
