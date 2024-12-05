@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 import org.antlr.v4.runtime.misc.NotNull;
 
+import java.io.Serializable;
 import java.sql.Timestamp;
 
 @Entity(name = "Subscription")
@@ -13,7 +14,7 @@ import java.sql.Timestamp;
 @AllArgsConstructor
 @Getter
 @Setter
-public class Subscription {
+public class Subscription implements Serializable {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
