@@ -14,7 +14,7 @@ import java.sql.Timestamp;
 @AllArgsConstructor
 @Getter
 @Setter
-public class Subscription implements Serializable {
+public class Subscription {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
@@ -49,6 +49,4 @@ public class Subscription implements Serializable {
     private void preUpdate() {
         updatedAt = new Timestamp(System.currentTimeMillis());
     }
-
-
 }

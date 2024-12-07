@@ -14,6 +14,7 @@ public class SubscriptionService {
         System.out.println(subscription);
         return subscriptionRepository.save(subscription);
     }
+
     public void update(Subscription subscription) { subscriptionRepository.save(subscription);}
 
     public Subscription getById(Long id) {

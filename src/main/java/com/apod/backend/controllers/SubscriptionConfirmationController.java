@@ -1,10 +1,12 @@
 package com.apod.backend.controllers;
 
 import com.apod.backend.dtos.payloads.SubscriptionConfirmationPayloadDto;
+import com.apod.backend.dtos.payloads.SubscriptionPayloadDto;
 import com.apod.backend.dtos.responses.ResponseDto;
 import com.apod.backend.entities.Subscription;
 import com.apod.backend.services.RedisService;
 import com.apod.backend.services.SubscriptionService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -22,24 +24,35 @@ public class SubscriptionConfirmationController {
     @Autowired
     SubscriptionService subscriptionService;
 
+    @Autowired
+    ObjectMapper objectMapper;
+
     @PostMapping
     public ResponseEntity<ResponseDto<Subscription>> confirmation(@RequestBody @Valid SubscriptionConfirmationPayloadDto subscriptionValidationPayload) {
-        String token = redisService.get(subscriptionValidationPayload.email());
+        try {
+            String subscriptionJson = redisService.get(subscriptionValidationPayload.token());
 
-        if (!subscriptionValidationPayload.token().equals(token)) {
-            return ResponseEntity.status(401).body(
-                    new ResponseDto<>(false, "Token inválido.", null)
+            if (subscriptionJson == null) {
+                return ResponseEntity.status(401).body(
+                        new ResponseDto<>(false, "Token inválido.", null)
+                );
+            }
+
+            SubscriptionPayloadDto subscriptionDto = objectMapper.readValue(subscriptionJson, SubscriptionPayloadDto.class);
+
+            Subscription newSubscription = subscriptionService.create(
+                    new Subscription(subscriptionDto.email(), subscriptionDto.name())
             );
+
+            redisService.delete(subscriptionValidationPayload.token());
+
+            return ResponseEntity.status(201).body(new ResponseDto<Subscription>(true, "Subscription criada.", newSubscription));
         }
 
-        Subscription newSubscription = subscriptionService.create(
-                new Subscription(
-                        subscriptionValidationPayload.email(),
-                        subscriptionValidationPayload.name()
-                )
-        );
-
-        redisService.delete(subscriptionValidationPayload.email());
-        return ResponseEntity.status(201).body(new ResponseDto<Subscription>(true, "Subscription criada.", newSubscription));
+        catch (Exception error) {
+            return ResponseEntity.status(401).body(
+                    new ResponseDto<>(false, error.getMessage(), null)
+            );
+        }
     }
 }
