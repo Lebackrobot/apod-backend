@@ -1,9 +1,12 @@
 package com.apod.backend.controllers;
 
+import com.apod.backend.dtos.payloads.SubscriptionConfirmationPayloadDto;
+import com.apod.backend.dtos.rabbitMessages.SubscriptionConfirmationMessageDto;
 import com.apod.backend.dtos.responses.ResponseDto;
 import com.apod.backend.dtos.payloads.SubscriptionPayloadDto;
 import com.apod.backend.entities.Subscription;
 import com.apod.backend.entities.TokenService;
+import com.apod.backend.services.RabbitService;
 import com.apod.backend.services.RedisService;
 import com.apod.backend.services.SubscriptionService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -28,6 +31,9 @@ public class SubscriptionController {
     @Autowired
     private TokenService tokenService;
 
+    @Autowired
+    private RabbitService rabbitService;
+
     @PostMapping
     public ResponseEntity<ResponseDto<Null>> create(@RequestBody @Valid SubscriptionPayloadDto subscriptionPayload) {
         try {
@@ -37,12 +43,19 @@ public class SubscriptionController {
                 return ResponseEntity.status(409).body(new ResponseDto<>(false, "Email já cadastrado", null));
             }
 
-            var redisKey = tokenService.generateToken();
-            var redisValue = objectMapper.writeValueAsString(subscriptionPayload);
+            var subscriptionToken = tokenService.generateToken();
+            var subscriptionJson = objectMapper.writeValueAsString(subscriptionPayload);
 
-            redisService.set(redisKey, redisValue);
+            var subscriptionConfirmationMessageDto = new SubscriptionConfirmationMessageDto(
+                    subscriptionPayload.email(),
+                    subscriptionPayload.name(),
+                    subscriptionToken
+            );
 
-            // 📨 Send token to your email
+            var subscriptionConfirmationMessageDtoJson = objectMapper.writeValueAsString(subscriptionConfirmationMessageDto);
+
+            redisService.set(subscriptionToken, subscriptionJson);
+            rabbitService.send(subscriptionConfirmationMessageDtoJson);
 
             return ResponseEntity.status(202).body(
                     new ResponseDto<Null>(true, "Token de confirmação enviado para o email.", null)
@@ -58,13 +71,22 @@ public class SubscriptionController {
 
     @DeleteMapping("/{subscriptionId}")
     public ResponseEntity<ResponseDto<Subscription>> deleteById(@PathVariable Long subscriptionId) {
-        Subscription subscription = subscriptionService.getById(subscriptionId);
+        try {
+            Subscription subscription = subscriptionService.getById(subscriptionId);
 
-        if (subscription == null) {
-            return ResponseEntity.status(404).body(new ResponseDto<>(false, "Subscription não encontrada.", null));
+            if (subscription == null) {
+                return ResponseEntity.status(404).body(new ResponseDto<>(false, "Subscription não encontrada.", null));
+            }
+
+            subscriptionService.deleteById(subscriptionId);
+            return ResponseEntity.status(200).body(new ResponseDto<>(true, "Subscription deletada.", subscription));
         }
 
-        subscriptionService.deleteById(subscriptionId);
-        return ResponseEntity.status(200).body(new ResponseDto<>(true, "Subscription deletada.", subscription));
+
+        catch (Exception error) {
+            return ResponseEntity.status(500).body(
+                    new ResponseDto<>(false, error.getMessage(), null)
+            );
+        }
     }
 }
