@@ -1,7 +1,6 @@
 package com.apod.backend.controllers;
 
-import com.apod.backend.dtos.payloads.SubscriptionConfirmationPayloadDto;
-import com.apod.backend.dtos.rabbitMessages.SubscriptionConfirmationMessageDto;
+import com.apod.backend.dtos.rabbitMessages.TokenEmailRabbitDto;
 import com.apod.backend.dtos.responses.ResponseDto;
 import com.apod.backend.dtos.payloads.SubscriptionPayloadDto;
 import com.apod.backend.entities.Subscription;
@@ -46,13 +45,13 @@ public class SubscriptionController {
             var subscriptionToken = tokenService.generateToken();
             var subscriptionJson = objectMapper.writeValueAsString(subscriptionPayload);
 
-            var subscriptionConfirmationMessageDto = new SubscriptionConfirmationMessageDto(
+            var tokenEmailDto = new TokenEmailRabbitDto(
                     subscriptionPayload.email(),
                     subscriptionPayload.name(),
                     subscriptionToken
             );
 
-            var subscriptionConfirmationMessageDtoJson = objectMapper.writeValueAsString(subscriptionConfirmationMessageDto);
+            var subscriptionConfirmationMessageDtoJson = objectMapper.writeValueAsString(tokenEmailDto);
 
             redisService.set(subscriptionToken, subscriptionJson);
             rabbitService.send(subscriptionConfirmationMessageDtoJson);

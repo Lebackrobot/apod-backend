@@ -11,5 +11,4 @@ public class RabbitConfig {
         String queue = "tokens";
         return new Queue(queue, true);
     }
-
 }
