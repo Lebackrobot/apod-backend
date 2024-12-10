@@ -1,6 +1,6 @@
 package com.apod.backend.controllers;
 
-import com.apod.backend.dtos.rabbitMessages.TokenEmailRabbitDto;
+import com.apod.backend.dtos.rabbitMessages.RabbitMessageDto;
 import com.apod.backend.dtos.responses.ResponseDto;
 import com.apod.backend.dtos.payloads.SubscriptionPayloadDto;
 import com.apod.backend.entities.Subscription;
@@ -45,16 +45,17 @@ public class SubscriptionController {
             var subscriptionToken = tokenService.generateToken();
             var subscriptionJson = objectMapper.writeValueAsString(subscriptionPayload);
 
-            var tokenEmailDto = new TokenEmailRabbitDto(
+            var rabbitMessageDto = new RabbitMessageDto(
                     subscriptionPayload.email(),
                     subscriptionPayload.name(),
-                    subscriptionToken
+                    subscriptionToken,
+                    "token"
             );
 
-            var subscriptionConfirmationMessageDtoJson = objectMapper.writeValueAsString(tokenEmailDto);
+            var rabbitMessagedDtoJson = objectMapper.writeValueAsString(rabbitMessageDto);
 
             redisService.set(subscriptionToken, subscriptionJson);
-            rabbitService.send(subscriptionConfirmationMessageDtoJson);
+            rabbitService.send(rabbitMessagedDtoJson);
 
             return ResponseEntity.status(202).body(
                     new ResponseDto<Null>(true, "Token de confirmação enviado para o email.", null)
