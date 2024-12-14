@@ -2,8 +2,10 @@ package com.apod.backend.controllers;
 
 import com.apod.backend.dtos.payloads.SubscriptionConfirmationPayloadDto;
 import com.apod.backend.dtos.payloads.SubscriptionPayloadDto;
+import com.apod.backend.dtos.rabbitMessages.RabbitMessageDto;
 import com.apod.backend.dtos.responses.ResponseDto;
 import com.apod.backend.entities.Subscription;
+import com.apod.backend.services.RabbitService;
 import com.apod.backend.services.RedisService;
 import com.apod.backend.services.SubscriptionService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -27,6 +29,9 @@ public class SubscriptionConfirmationController {
     @Autowired
     ObjectMapper objectMapper;
 
+    @Autowired
+    RabbitService rabbitService;
+
     @PostMapping
     public ResponseEntity<ResponseDto<Subscription>> confirmation(@RequestBody @Valid SubscriptionConfirmationPayloadDto subscriptionValidationPayload) {
         try {
@@ -45,6 +50,16 @@ public class SubscriptionConfirmationController {
             );
 
             redisService.delete(subscriptionValidationPayload.token());
+
+            var rabbitMessage = new RabbitMessageDto(
+                    newSubscription.getEmail(),
+                    newSubscription.getName(),
+                    null,
+                    "subscription"
+            );
+
+            var rabbitMessagedDtoJson = objectMapper.writeValueAsString(rabbitMessage);
+            rabbitService.send(rabbitMessagedDtoJson);
 
             return ResponseEntity.status(201).body(new ResponseDto<Subscription>(true, "Subscription criada.", newSubscription));
         }
